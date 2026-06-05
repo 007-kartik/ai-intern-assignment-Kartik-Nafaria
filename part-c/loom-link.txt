@@ -1,0 +1,16 @@
+==========================================================================
+PART C: INTEGRATION DEMO RECORDING LINK
+==========================================================================
+
+Candidate: Kartik Nafaria
+Project: AI Automation Intern – Technical Assessment
+
+Loom Video Walkthrough demonstrating the end-to-end integration flow between the Lead Capture Form and the n8n Webhook:
+
+👉 Loom Demo Link: https://www.loom.com/share/b86a87e597c4493ea4ef5a2e9bb765b2
+
+This video covers:
+1. Dynamic form validations (successful submittal and error validation traps).
+2. Local n8n workflow execution monitoring.
+3. Database logging and conditional email notification routing.
+4. Part C Webhook simulation debugging console features.

@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Part C - Webhook Integration Demo</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <!-- Import Part A Styles -->
+  <link rel="stylesheet" href="../part-a/style.css">
+
+  <!-- Integration Specific Styles (Cleanly nested) -->
+  <style>
+    :root {
+      --terminal-bg: #07090e;
+      --code-color: #38BDF8;
+    }
+
+    .integration-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 2rem;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      align-items: start;
+    }
+
+    /* Connection Dashboard Card */
+    .dashboard-card {
+      background-color: hsl(var(--card-bg));
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid hsl(var(--border-color));
+      border-radius: 24px;
+      padding: 2.25rem 2rem;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 1.5rem;
+    }
+
+    .dashboard-card h2 {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dashboard-card p {
+      font-size: 0.85rem;
+      color: hsl(var(--text-secondary));
+      margin-bottom: 1.5rem;
+    }
+
+    /* Mode selector styling */
+    .mode-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 0.25rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .mode-btn {
+      background: transparent;
+      border: none;
+      color: hsl(var(--text-secondary));
+      padding: 0.5rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .mode-btn.active {
+      background: var(--accent-gradient);
+      color: #FFFFFF;
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.2);
+    }
+
+    /* Simulation selector */
+    .sim-selector {
+      margin-bottom: 1.25rem;
+      display: none;
+    }
+    .sim-selector.active {
+      display: block;
+    }
+
+    /* Webhook Input */
+    .webhook-input-wrapper {
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .webhook-input-wrapper.inactive {
+      display: none;
+    }
+
+    /* Terminal Console logs */
+    .terminal-console {
+      background-color: var(--terminal-bg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.8rem;
+      color: #E2E8F0;
+      min-height: 180px;
+      max-height: 250px;
+      overflow-y: auto;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: hsl(var(--text-muted));
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 4px;
+    }
+    .terminal-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #EF4444; }
+    .dot-yellow { background: #F59E0B; }
+    .dot-green { background: #10B981; }
+
+    .log-line {
+      margin-bottom: 0.5rem;
+      line-height: 1.4;
+    }
+
+    .log-info { color: #A5B4FC; }
+    .log-success { color: #34D399; }
+    .log-error { color: #F87171; }
+    .log-warn { color: #FBBF24; }
+    
+    .json-code {
+      display: block;
+      color: var(--code-color);
+      white-space: pre-wrap;
+      margin-left: 1rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-success { background: rgba(16, 185, 129, 0.15); color: #34D399; }
+    .badge-error { background: rgba(239, 68, 68, 0.15); color: #F87171; }
+
+    @media (max-width: 1024px) {
+      .integration-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient background blobs -->
+  <div class="blob-bg blob-1"></div>
+  <div class="blob-bg blob-2"></div>
+  <div class="blob-bg blob-3"></div>
+
+  <main class="container" style="max-width: 1100px; padding: 1rem;">
+    <!-- Main page headers -->
+    <div class="form-header" style="margin-bottom: 2rem;">
+      <div class="logo-area">
+        <div class="logo-icon"><i class="fa-solid fa-link"></i></div>
+        <span class="logo-text">Part C Integration</span>
+      </div>
+      <h1>Webhook Tester & Lead Capture</h1>
+      <p class="subtitle">Interact directly with n8n workflow triggers and debug live requests</p>
+    </div>
+
+    <!-- 2-Column Responsive Layout -->
+    <div class="integration-grid">
+      
+      <!-- COLUMN 1: Lead Capture Form -->
+      <div class="form-card" style="padding: 2.25rem 2rem;">
+        <h2 style="font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fa-solid fa-envelope-open-text" style="color: rgb(var(--primary-rgb));"></i> Lead Capture Form
+        </h2>
+        
+        <form id="leadForm" novalidate>
+          <!-- Full Name -->
+          <div class="form-group" id="group-name">
+            <label for="fullName">Full Name <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-user field-icon"></i>
+              <input type="text" id="fullName" name="fullName" placeholder="e.g. John Doe">
+              <i class="fa-solid fa-circle-check status-icon success"></i>
+              <i class="fa-solid fa-circle-exclamation status-icon error"></i>
+            </div>
+            <span class="error-message">Please enter at least 3 characters.</span>
+          </div>
+
+          <!-- Email Address -->
+          <div class="form-group" id="group-email">
+            <label for="email">Email Address <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-envelope field-icon"></i>
+              <input type="email" id="email" name="email" placeholder="name@example.com">
+              <i class="fa-solid fa-circle-check status-icon success"></i>
+              <i class="fa-solid fa-circle-exclamation status-icon error"></i>
+            </div>
+            <span class="error-message">Please enter a valid email address.</span>
+          </div>
+
+          <div class="form-row">
+            <!-- Country Dropdown -->
+            <div class="form-group" id="group-country">
+              <label for="country">Country of Residence <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-earth-americas field-icon"></i>
+                <select id="country" name="country">
+                  <option value="" disabled selected>Select country</option>
+                  <option value="US">United States</option>
+                  <option value="GB">United Kingdom</option>
+                  <option value="CA">Canada</option>
+                  <option value="AU">Australia</option>
+                  <option value="IN">India</option>
+                  <option value="DE">Germany</option>
+                  <option value="FR">France</option>
+                  <option value="SG">Singapore</option>
+                  <option value="NZ">New Zealand</option>
+                  <option value="OTHER">Other</option>
+                </select>
+                <i class="fa-solid fa-chevron-down select-chevron"></i>
+              </div>
+              <span class="error-message">Please select a country.</span>
+            </div>
+
+            <!-- Preferred University -->
+            <div class="form-group" id="group-university">
+              <label for="university">Preferred University <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-building-columns field-icon"></i>
+                <input type="text" id="university" name="university" placeholder="e.g. Stanford University">
+                <i class="fa-solid fa-circle-check status-icon success"></i>
+                <i class="fa-solid fa-circle-exclamation status-icon error"></i>
+              </div>
+              <span class="error-message">Preferred university is required.</span>
+            </div>
+          </div>
+
+          <!-- Course Level Radio Buttons -->
+          <div class="form-group" id="group-courseLevel">
+            <label class="label-group">Course Level Interest <span class="required">*</span></label>
+            <div class="radio-group">
+              <label class="radio-card">
+                <input type="radio" name="courseLevel" value="UG">
+                <span class="radio-custom"></span>
+                <span class="radio-label">UG</span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="courseLevel" value="PG">
+                <span class="radio-custom"></span>
+                <span class="radio-label">PG</span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="courseLevel" value="PhD">
+                <span class="radio-custom"></span>
+                <span class="radio-label">PhD</span>
+              </label>
+            </div>
+            <span class="error-message">Please select a course level.</span>
+          </div>
+
+          <!-- Message Textarea -->
+          <div class="form-group" id="group-message">
+            <div class="label-with-counter">
+              <label for="message">Personal Message <span class="required">*</span></label>
+              <span class="char-counter" id="charCounter">0 / 300</span>
+            </div>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-comment-dots field-icon textarea-icon"></i>
+              <textarea id="message" name="message" placeholder="Tell us about your academic goals..." rows="3" maxlength="300"></textarea>
+            </div>
+            <span class="error-message">Message is required.</span>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="submitBtn" class="submit-btn">
+            <span class="btn-text">Submit to n8n Webhook</span>
+            <span class="btn-loader"><i class="fa-solid fa-circle-notch fa-spin"></i> Dispatching...</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- COLUMN 2: Webhook Connection & Log Terminal -->
+      <div>
+        
+        <!-- Webhook Configuration -->
+        <div class="dashboard-card">
+          <h2><i class="fa-solid fa-sliders" style="color: rgb(var(--secondary-rgb));"></i> Integration Settings</h2>
+          <p>Configure the submission mode to test the connection properties.</p>
+          
+          <div class="mode-selector">
+            <button type="button" class="mode-btn active" id="btn-live">Live Webhook</button>
+            <button type="button" class="mode-btn" id="btn-mock">Mock Simulator</button>
+          </div>
+
+          <!-- Webhook URL input (Live mode only) -->
+          <div class="form-group webhook-input-wrapper" id="webhook-url-section">
+            <label for="webhookUrl">n8n Webhook Endpoint URL</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-network-wired field-icon"></i>
+              <input type="text" id="webhookUrl" placeholder="http://localhost:5678/webhook/student-lead" value="http://localhost:5678/webhook/student-lead">
+            </div>
+          </div>
+
+          <!-- Simulation options (Mock mode only) -->
+          <div class="form-group sim-selector" id="mock-section">
+            <label for="mockOption">Simulated Server Action</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-microchip field-icon"></i>
+              <select id="mockOption" style="padding-left: 2.75rem;">
+                <option value="success">Simulate 200 Success Response</option>
+                <option value="fail">Simulate 500 Submission Failure</option>
+                <option value="timeout">Simulate Network Timeout (Failure)</option>
+              </select>
+              <i class="fa-solid fa-chevron-down select-chevron"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Debug Logging Console -->
+        <div class="dashboard-card" style="padding: 1.5rem;">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span class="terminal-dot dot-red"></span>
+              <span class="terminal-dot dot-yellow"></span>
+              <span class="terminal-dot dot-green"></span>
+            </div>
+            <span>INTEGRATION DEBUG CONSOLE</span>
+            <button id="clearConsole" style="background:none; border:none; color: hsl(var(--text-muted)); cursor:pointer;"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+
+          <div class="terminal-console" id="consoleLogs">
+            <div class="log-line log-info">[INFO] Console initialized. Ready to intercept dispatches.</div>
+            <div class="log-line log-info">[INFO] Default webhook: http://localhost:5678/webhook/student-lead</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <footer class="footer-info">
+    <p>Part C Integration &bull; AI Automation Intern Technical Assessment &bull; Designed & Handcrafted</p>
+  </footer>
+
+  <!-- Webhook Script Logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // --- DOM Elements ---
+      const form = document.getElementById('leadForm');
+      const nameInput = document.getElementById('fullName');
+      const emailInput = document.getElementById('email');
+      const countryInput = document.getElementById('country');
+      const universityInput = document.getElementById('university');
+      const messageInput = document.getElementById('message');
+      const courseLevelRadios = document.querySelectorAll('input[name="courseLevel"]');
+      const charCounter = document.getElementById('charCounter');
+      const submitBtn = document.getElementById('submitBtn');
+      const toastContainer = document.getElementById('toastContainer');
+
+      // Integration dashboard
+      const btnLive = document.getElementById('btn-live');
+      const btnMock = document.getElementById('btn-mock');
+      const webhookUrlSec = document.getElementById('webhook-url-section');
+      const mockSec = document.getElementById('mock-section');
+      const webhookUrlInput = document.getElementById('webhookUrl');
+      const mockOptionSelect = document.getElementById('mockOption');
+      const consoleLogs = document.getElementById('consoleLogs');
+      const clearConsoleBtn = document.getElementById('clearConsole');
+
+      // --- Constants ---
+      const MAX_CHARACTERS = 300;
+      const MIN_NAME_LENGTH = 3;
+      const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      let activeMode = 'live'; // 'live' or 'mock'
+
+      // --- Switch Mode Event Listeners ---
+      btnLive.addEventListener('click', () => {
+        activeMode = 'live';
+        btnLive.classList.add('active');
+        btnMock.classList.remove('active');
+        webhookUrlSec.classList.remove('inactive');
+        mockSec.classList.remove('active');
+        logMessage('info', 'Switched to LIVE mode. Submissions will trigger fetch() to the webhook.');
+      });
+
+      btnMock.addEventListener('click', () => {
+        activeMode = 'mock';
+        btnLive.classList.remove('active');
+        btnMock.classList.add('active');
+        webhookUrlSec.classList.add('inactive');
+        mockSec.classList.add('active');
+        logMessage('info', 'Switched to MOCK SIMULATOR mode. Offline tests enabled.');
+      });
+
+      clearConsoleBtn.addEventListener('click', () => {
+        consoleLogs.innerHTML = `<div class="log-line log-info">[INFO] Console logs cleared.</div>`;
+      });
+
+      // --- Setup Standard Form Handlers ---
+      setupValidationListeners();
+      setupCharacterCounter();
+      form.addEventListener('submit', handleFormSubmit);
+
+      function setupValidationListeners() {
+        nameInput.addEventListener('blur', () => validateField(nameInput, 'group-name', nameInput.value.trim().length >= MIN_NAME_LENGTH));
+        nameInput.addEventListener('input', () => validateField(nameInput, 'group-name', nameInput.value.trim().length >= MIN_NAME_LENGTH, false));
+
+        emailInput.addEventListener('blur', () => validateField(emailInput, 'group-email', EMAIL_REGEX.test(emailInput.value.trim())));
+        emailInput.addEventListener('input', () => validateField(emailInput, 'group-email', EMAIL_REGEX.test(emailInput.value.trim()), false));
+
+        countryInput.addEventListener('change', () => validateField(countryInput, 'group-country', countryInput.value !== ''));
+        
+        universityInput.addEventListener('blur', () => validateField(universityInput, 'group-university', universityInput.value.trim().length > 0));
+        universityInput.addEventListener('input', () => validateField(universityInput, 'group-university', universityInput.value.trim().length > 0, false));
+
+        messageInput.addEventListener('blur', () => validateField(messageInput, 'group-message', messageInput.value.trim().length > 0));
+        messageInput.addEventListener('input', () => validateField(messageInput, 'group-message', messageInput.value.trim().length > 0, false));
+
+        courseLevelRadios.forEach(radio => {
+          radio.addEventListener('change', () => {
+            const checked = Array.from(courseLevelRadios).some(r => r.checked);
+            const group = document.getElementById('group-courseLevel');
+            if (checked) {
+              group.classList.remove('is-invalid');
+              group.classList.add('is-valid');
+            } else {
+              group.classList.remove('is-valid');
+              group.classList.add('is-invalid');
+            }
+          });
+        });
+      }
+
+      function setupCharacterCounter() {
+        messageInput.addEventListener('input', () => {
+          const count = messageInput.value.length;
+          charCounter.textContent = `${count} / ${MAX_CHARACTERS}`;
+          if (count >= MAX_CHARACTERS) {
+            charCounter.classList.add('limit-reached');
+          } else {
+            charCounter.classList.remove('limit-reached');
+          }
+        });
+      }
+
+      function validateField(element, groupID, isValid, showError = true) {
+        const group = document.getElementById(groupID);
+        if (!group) return isValid;
+        if (isValid) {
+          group.classList.remove('is-invalid');
+          group.classList.add('is-valid');
+        } else if (showError) {
+          group.classList.remove('is-valid');
+          group.classList.add('is-invalid');
+        }
+        return isValid;
+      }
+
+      function validateAll() {
+        const isName = validateField(nameInput, 'group-name', nameInput.value.trim().length >= MIN_NAME_LENGTH);
+        const isEmail = validateField(emailInput, 'group-email', EMAIL_REGEX.test(emailInput.value.trim()));
+        const isCountry = validateField(countryInput, 'group-country', countryInput.value !== '');
+        const isUniv = validateField(universityInput, 'group-university', universityInput.value.trim().length > 0);
+        const isMsg = validateField(messageInput, 'group-message', messageInput.value.trim().length > 0);
+        
+        const isRadio = Array.from(courseLevelRadios).some(r => r.checked);
+        const radioGroup = document.getElementById('group-courseLevel');
+        if (isRadio) {
+          radioGroup.classList.remove('is-invalid');
+          radioGroup.classList.add('is-valid');
+        } else {
+          radioGroup.classList.remove('is-valid');
+          radioGroup.classList.add('is-invalid');
+        }
+
+        return isName && isEmail && isCountry && isUniv && isMsg && isRadio;
+      }
+
+      /* ==========================================================================
+         FETCH & SIMULATOR LOGIC
+         ========================================================================== */
+
+      function handleFormSubmit(e) {
+        e.preventDefault();
+        
+        if (!validateAll()) {
+          showToast('Validation Error', 'Please check the form inputs.', 'error');
+          logMessage('error', 'Form validation failed. Dispatch blocked.');
+          return;
+        }
+
+        const payload = {
+          name: nameInput.value.trim(),
+          email: emailInput.value.trim(),
+          country: countryInput.value,
+          courseLevel: document.querySelector('input[name="courseLevel"]:checked').value,
+          university: universityInput.value.trim(),
+          message: messageInput.value.trim()
+        };
+
+        setLoading(true);
+        logMessage('info', `Sending data package to endpoint in [${activeMode.toUpperCase()}] mode...`);
+        logCodeBlock(payload);
+
+        if (activeMode === 'live') {
+          sendLivePayload(payload);
+        } else {
+          runSimulation(payload);
+        }
+      }
+
+      /**
+       * Send real HTTP POST using fetch()
+       */
+      async function sendLivePayload(payload) {
+        const endpoint = webhookUrlInput.value.trim() || 'http://localhost:5678/webhook/student-lead';
+        logMessage('info', `fetch() POST dispatches: ${endpoint}`);
+
+        try {
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const responseText = await response.text();
+          let parsedResponse = {};
+          try {
+            parsedResponse = JSON.parse(responseText);
+          } catch(e) {
+            parsedResponse = { rawText: responseText };
+          }
+
+          if (response.ok) {
+            logMessage('success', `HTTP Response: ${response.status} OK`);
+            logCodeBlock(parsedResponse);
+            showToast('Lead Captured Successfully', 'Lead submitted successfully', 'success');
+            resetForm();
+          } else {
+            throw new Error(`HTTP Error Status: ${response.status}`);
+          }
+
+        } catch (error) {
+          logMessage('error', `Submission failed: ${error.message}`);
+          logMessage('warn', `Verify that n8n is active locally and CORS handles request origins. Ensure your URL matches. Node logs printed to terminal.`);
+          showToast('Submission failed', 'Submission failed. Please try again', 'error');
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      /**
+       * Run mock simulator scenarios
+       */
+      function runSimulation(payload) {
+        const scenario = mockOptionSelect.value;
+        logMessage('info', `Simulator executing scenario: ${scenario}`);
+
+        setTimeout(() => {
+          setLoading(false);
+          
+          if (scenario === 'success') {
+            logMessage('success', 'HTTP Mock Response: 200 OK');
+            logCodeBlock({
+              status: "success",
+              message: "Lead submitted successfully",
+              data: {
+                student_name: payload.name,
+                student_email: payload.email,
+                course_level: payload.courseLevel
+              }
+            });
+            showToast('Lead Captured Successfully', 'Lead submitted successfully', 'success');
+            resetForm();
+          } else if (scenario === 'fail') {
+            logMessage('error', 'HTTP Mock Response: 500 Internal Server Error');
+            logCodeBlock({
+              status: "error",
+              message: "Internal Server Error - Unable to append lead to Google Sheet credentials"
+            });
+            showToast('Submission failed', 'Submission failed. Please try again', 'error');
+          } else if (scenario === 'timeout') {
+            logMessage('error', 'TypeError: Failed to fetch (Reason: connection timeout)');
+            logMessage('warn', 'Simulated offline/cors state. Submit blocked.');
+            showToast('Submission failed', 'Submission failed. Please try again', 'error');
+          }
+        }, 1500);
+      }
+
+      // --- Utilities ---
+
+      function setLoading(loading) {
+        if (loading) {
+          submitBtn.classList.add('is-loading');
+        } else {
+          submitBtn.classList.remove('is-loading');
+        }
+      }
+
+      function resetForm() {
+        form.reset();
+        charCounter.textContent = `0 / ${MAX_CHARACTERS}`;
+        charCounter.classList.remove('limit-reached');
+        document.querySelectorAll('.form-group').forEach(g => g.classList.remove('is-valid', 'is-invalid'));
+      }
+
+      function logMessage(type, message) {
+        const line = document.createElement('div');
+        line.className = `log-line log-${type}`;
+        
+        const timestamp = new Date().toLocaleTimeString();
+        line.textContent = `[${timestamp}] [${type.toUpperCase()}] ${message}`;
+        consoleLogs.appendChild(line);
+        consoleLogs.scrollTop = consoleLogs.scrollHeight;
+      }
+
+      function logCodeBlock(obj) {
+        const pre = document.createElement('pre');
+        pre.className = 'json-code';
+        pre.textContent = JSON.stringify(obj, null, 2);
+        consoleLogs.appendChild(pre);
+        consoleLogs.scrollTop = consoleLogs.scrollHeight;
+      }
+
+      function showToast(title, desc, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let icon = type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation';
+        toast.innerHTML = `
+          <i class="fa-solid ${icon} toast-icon"></i>
+          <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-desc">${desc}</div>
+          </div>
+        `;
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+          toast.classList.add('hide');
+          setTimeout(() => toast.remove(), 300);
+        }, 4000);
+      }
+    });
+  </script>
+</body>
+</html>
