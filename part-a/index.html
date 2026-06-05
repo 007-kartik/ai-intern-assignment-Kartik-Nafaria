@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Lead Capture Form - Technical Assessment</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient background blobs -->
+  <div class="blob-bg blob-1"></div>
+  <div class="blob-bg blob-2"></div>
+  <div class="blob-bg blob-3"></div>
+
+  <main class="container">
+    <div class="form-card">
+      <div class="form-header">
+        <div class="logo-area">
+          <div class="logo-icon">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <span class="logo-text">EduSphere Global</span>
+        </div>
+        <h1>Technical Assessment</h1>
+        <p class="subtitle">Student Lead Capture System</p>
+      </div>
+
+      <form id="leadForm" novalidate>
+        <!-- Full Name -->
+        <div class="form-group" id="group-name">
+          <label for="fullName">Full Name <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-user field-icon"></i>
+            <input 
+              type="text" 
+              id="fullName" 
+              name="fullName" 
+              placeholder="e.g. John Doe"
+              autocomplete="name"
+            >
+            <i class="fa-solid fa-circle-check status-icon success"></i>
+            <i class="fa-solid fa-circle-exclamation status-icon error"></i>
+          </div>
+          <span class="error-message" id="error-fullName">Please enter at least 3 characters.</span>
+        </div>
+
+        <!-- Email Address -->
+        <div class="form-group" id="group-email">
+          <label for="email">Email Address <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-envelope field-icon"></i>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              placeholder="name@example.com"
+              autocomplete="email"
+            >
+            <i class="fa-solid fa-circle-check status-icon success"></i>
+            <i class="fa-solid fa-circle-exclamation status-icon error"></i>
+          </div>
+          <span class="error-message" id="error-email">Please enter a valid email address.</span>
+        </div>
+
+        <!-- 2-Column Row for Dropdowns & Inputs -->
+        <div class="form-row">
+          <!-- Country Dropdown -->
+          <div class="form-group" id="group-country">
+            <label for="country">Country of Residence <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-earth-americas field-icon"></i>
+              <select id="country" name="country">
+                <option value="" disabled selected>Select your country</option>
+                <option value="US">United States</option>
+                <option value="GB">United Kingdom</option>
+                <option value="CA">Canada</option>
+                <option value="AU">Australia</option>
+                <option value="IN">India</option>
+                <option value="DE">Germany</option>
+                <option value="FR">France</option>
+                <option value="SG">Singapore</option>
+                <option value="NZ">New Zealand</option>
+                <option value="OTHER">Other</option>
+              </select>
+              <i class="fa-solid fa-chevron-down select-chevron"></i>
+            </div>
+            <span class="error-message" id="error-country">Please select a country.</span>
+          </div>
+
+          <!-- Preferred University -->
+          <div class="form-group" id="group-university">
+            <label for="university">Preferred University <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-building-columns field-icon"></i>
+              <input 
+                type="text" 
+                id="university" 
+                name="university" 
+                placeholder="e.g. Stanford University"
+              >
+              <i class="fa-solid fa-circle-check status-icon success"></i>
+              <i class="fa-solid fa-circle-exclamation status-icon error"></i>
+            </div>
+            <span class="error-message" id="error-university">Preferred university is required.</span>
+          </div>
+        </div>
+
+        <!-- Course Level Radio Buttons -->
+        <div class="form-group" id="group-courseLevel">
+          <label class="label-group">Course Level Interest <span class="required">*</span></label>
+          <div class="radio-group">
+            <label class="radio-card">
+              <input type="radio" name="courseLevel" value="UG">
+              <span class="radio-custom"></span>
+              <span class="radio-label">Undergraduate (UG)</span>
+            </label>
+            
+            <label class="radio-card">
+              <input type="radio" name="courseLevel" value="PG">
+              <span class="radio-custom"></span>
+              <span class="radio-label">Postgraduate (PG)</span>
+            </label>
+            
+            <label class="radio-card">
+              <input type="radio" name="courseLevel" value="PhD">
+              <span class="radio-custom"></span>
+              <span class="radio-label">Doctorate (PhD)</span>
+            </label>
+          </div>
+          <span class="error-message" id="error-courseLevel">Please select a course level.</span>
+        </div>
+
+        <!-- Message Textarea -->
+        <div class="form-group" id="group-message">
+          <div class="label-with-counter">
+            <label for="message">Personal Statement / Message <span class="required">*</span></label>
+            <span class="char-counter" id="charCounter">0 / 300</span>
+          </div>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-comment-dots field-icon textarea-icon"></i>
+            <textarea 
+              id="message" 
+              name="message" 
+              placeholder="Tell us about your academic goals..."
+              rows="4"
+              maxlength="300"
+            ></textarea>
+          </div>
+          <span class="error-message" id="error-message">Message is required.</span>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="submitBtn" class="submit-btn">
+          <span class="btn-text">Submit Lead Application</span>
+          <span class="btn-loader">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> Processing...
+          </span>
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Footer Info -->
+  <footer class="footer-info">
+    <p>AI Automation Intern Technical Assessment &bull; Designed & Handcrafted</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
