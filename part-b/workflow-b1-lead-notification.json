@@ -1,0 +1,320 @@
+{
+  "name": "B1 - Lead Notification Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "student-lead",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger-node-id",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        200,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "set",
+        "fields": {
+          "values": [
+            {
+              "name": "student_name",
+              "value": "={{ $json.body.name }}"
+            },
+            {
+              "name": "student_email",
+              "value": "={{ $json.body.email }}"
+            },
+            {
+              "name": "course_level",
+              "value": "={{ $json.body.courseLevel }}"
+            },
+            {
+              "name": "student_message",
+              "value": "={{ $json.body.message }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-transform-node-id",
+      "name": "Transform Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        420,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "type": "string"
+          },
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $json.course_level }}",
+              "comparison": "equals",
+              "rightValue": "PG"
+            },
+            {
+              "id": "cond-2",
+              "leftValue": "={{ $json.course_level }}",
+              "comparison": "equals",
+              "rightValue": "PhD"
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "if-course-level-node-id",
+      "name": "Is PG or PhD?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.student_email }}",
+        "subject": "EduSphere: Graduate Lead Captured successfully!",
+        "messageType": "text",
+        "message": "=Hello {{ $json.student_name }},\n\nWe have received your interest in our {{ $json.course_level }} program. An advisor will contact you shortly regarding admission into {{ $node[\"Webhook Trigger\"].json.body.university }}.\n\nBest Regards,\nEduSphere Admissions Team",
+        "options": {}
+      },
+      "id": "email-node-id",
+      "name": "Send Email Notification",
+      "type": "n8n-nodes-base.email",
+      "typeVersion": 1,
+      "position": [
+        900,
+        180
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "set",
+        "fields": {
+          "values": [
+            {
+              "name": "status",
+              "value": "Mock Notification Sent (Email Credentials Unavailable)"
+            },
+            {
+              "name": "email_recipient",
+              "value": "={{ $json.student_email }}"
+            },
+            {
+              "name": "course_level",
+              "value": "={{ $json.course_level }}"
+            },
+            {
+              "name": "message_preview",
+              "value": "=EduSphere lead notification for {{ $json.student_name }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "mock-email-node-id",
+      "name": "Mock Notification Node",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        1140,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Student Name": "={{ $json.student_name }}",
+            "Email": "={{ $json.student_email }}",
+            "Level": "={{ $json.course_level }}",
+            "Message": "={{ $json.student_message }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "google-sheets-node-id",
+      "name": "Log into Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        900,
+        380
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "set",
+        "fields": {
+          "values": [
+            {
+              "name": "status",
+              "value": "Successfully logged to Mock Data Storage (UG course level / fallback)"
+            },
+            {
+              "name": "student_name",
+              "value": "={{ $json.student_name }}"
+            },
+            {
+              "name": "student_email",
+              "value": "={{ $json.student_email }}"
+            },
+            {
+              "name": "logged_time",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "mock-storage-node-id",
+      "name": "Mock Data Storage",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        1140,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        },
+        "responseBody": "={\n  \"status\": \"success\",\n  \"message\": \"Lead submitted successfully\",\n  \"student_name\": \"{{ $json.student_name }}\"\n}"
+      },
+      "id": "webhook-response-node-id",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        280
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Transform Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform Fields": {
+      "main": [
+        [
+          {
+            "node": "Is PG or PhD?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is PG or PhD?": {
+      "main": [
+        [
+          {
+            "node": "Send Email Notification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log into Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email Notification": {
+      "main": [
+        [
+          {
+            "node": "Mock Notification Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log into Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Mock Data Storage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mock Notification Node": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mock Data Storage": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "name": "B2 - Scheduled Data Fetch Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger-node-id",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        200,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://jsonplaceholder.typicode.com/users",
+        "options": {}
+      },
+      "id": "http-request-node-id",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        420,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// Determine if raw output is a single item containing an array, or split items\nlet users = [];\nif (items.length === 1 && Array.isArray(items[0].json)) {\n  users = items[0].json;\n} else {\n  users = items.map(item => item.json);\n}\n\n// Output first 5 records only\nconst firstFive = users.slice(0, 5);\n\n// Transform records using JavaScript\nreturn firstFive.map(user => {\n  return {\n    json: {\n      id: user.id,\n      name: user.name,\n      username: user.username,\n      email: user.email,\n      company_name: user.company ? user.company.name : 'N/A'\n    }\n  };\n});"
+      },
+      "id": "code-node-id",
+      "name": "Code Node (JS Transform)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "set",
+        "fields": {
+          "values": [
+            {
+              "name": "user_id",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "name": "full_name",
+              "value": "={{ $json.name }}"
+            },
+            {
+              "name": "username",
+              "value": "={{ $json.username }}"
+            },
+            {
+              "name": "email_address",
+              "value": "={{ $json.email }}"
+            },
+            {
+              "name": "company",
+              "value": "={{ $json.company_name }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-node-id",
+      "name": "Set Clean Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        860,
+        280
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code Node (JS Transform)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Node (JS Transform)": {
+      "main": [
+        [
+          {
+            "node": "Set Clean Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
