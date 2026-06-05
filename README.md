@@ -173,7 +173,7 @@ This workflow runs a periodic data extraction pipeline.
 A mock simulator is embedded in **Part C** to test integration paths.
 
 ### Loom Demo Walkthrough
-👉 **Watch the Working Demo:** [Loom Video Link](https://www.loom.com/share/b86a87e597c4493ea4ef5a2e9bb765b2)
+👉 **Watch the Working Demo:** [Loom Video Link](https://www.loom.com/share/4f2701ed0d5f47ecbb84603c0ab9f5a6)
 
 ### Testing matrix:
 | Mode | Input Action | Expected UI Toast | Expected Console Log Output |
